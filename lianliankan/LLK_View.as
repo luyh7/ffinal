@@ -5,7 +5,9 @@ package lianliankan {
     import flash.events.MouseEvent;
     import flash.system.ApplicationDomain;
 
-    public class LLK_View extends Sprite {
+import lianliankan.LLK_Config;
+
+public class LLK_View extends Sprite {
 
         private static var _instance:LLK_View;
         private var _domain:ApplicationDomain = ApplicationDomain.currentDomain;
@@ -65,7 +67,7 @@ package lianliankan {
                     _model.chessBoardMatrix[i + 1][j + 1] = 1;
                     icons.gotoAndStop(int(Math.random() * 30));
 
-                    iconContainer.addChild(icons)
+                    iconContainer.addChild(icons);
                     iconContainer.mouseChildren = false; // todo
                     iconContainer.id = i * LLK_Config.BOARD_SIZE_X + j;
                     iconContainer.type = icons.currentFrame;
@@ -92,9 +94,40 @@ package lianliankan {
 
         private function playEliminateMovie(icon:MovieClip, anotherIcon:MovieClip, track:Object):void
         {
+            playThunderMovie(track);
             _stage.removeChild(icon);
             _stage.removeChild(anotherIcon);
             //todo 播放消除动画
+        }
+
+        private function playThunderMovie(track:Object)
+        {
+            var p:Object = track;
+            while(p.next)
+            {
+                var x = LLK_Config.ORIGIN_X + (p.j-1) * LLK_Config.OFFSET + 24;
+                var y = LLK_Config.ORIGIN_Y + (p.i-1) * LLK_Config.OFFSET + 24;
+                var thunder = getClass("Line") as MovieClip;
+                thunder.x = x;
+                thunder.y = y;
+                thunder.scaleX = 0.5;
+                var direction:Object = {"x":p.next.j - p.j, "y":p.next.i-p.i};
+                trace("rotation: " + direction.x + "," + direction.y)
+                thunder.x -= direction.x == -1? LLK_Config.OFFSET:0;
+                thunder.rotationZ = 90 * direction.y;
+
+                thunder.addFrameScript(thunder.totalFrames - 1, function ()
+                {
+//                    if(_stage.contains(thunder))
+//                    {
+//                        _stage.removeChild(thunder);
+//                    }
+                    thunder.visible = false;
+                    thunder.addFrameScript(thunder.totalFrames - 1,null)
+                })
+                _stage.addChild(thunder);
+                p = p.next;
+            }
         }
 
         private function updatePanel():void
@@ -107,7 +140,7 @@ package lianliankan {
                 {
                     child.gotoAndStop(2);
                 }
-                else
+                else if(child.id != null)
                 {
                     child.gotoAndStop(1);
                 }
